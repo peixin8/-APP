@@ -1,12 +1,12 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { emptyAppData } from './domain/types'
 import { exportBackup } from './storage/fileStore'
 
 describe('app shell and first-run experience', () => {
-  afterEach(cleanup)
+  afterEach(() => { cleanup(); vi.restoreAllMocks() })
   it('shows local-only onboarding before data is loaded', async () => {
     render(<App />)
     expect(await screen.findByRole('heading', { name: /给工作与生活/ })).toBeInTheDocument()
@@ -136,5 +136,24 @@ describe('app shell and first-run experience', () => {
     await user.type(screen.getByLabelText('沟通摘要'), '讨论了下一阶段计划')
     await user.click(screen.getByRole('button', { name: '保存沟通' }))
     expect(screen.getByText(/林女士 · 讨论了下一阶段计划/)).toBeInTheDocument()
+  })
+  it('deletes a client and its linked communication records after confirmation', async () => {
+    const user = userEvent.setup()
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const { container } = render(<App />)
+    await screen.findByRole('heading', { name: /给工作与生活/ })
+    await user.upload(container.querySelector('input[type="file"]') as HTMLInputElement, new File([exportBackup(emptyAppData())], 'backup.json', { type: 'application/json' }))
+    await screen.findByRole('heading', { name: '早上好，木子' })
+    await user.click(screen.getByRole('button', { name: /^咨询工作$/ }))
+    await user.click(screen.getByRole('button', { name: '添加客户' }))
+    await user.type(screen.getByLabelText('客户名称'), '林女士')
+    await user.click(screen.getByRole('button', { name: '保存记录' }))
+    await user.click(screen.getByRole('button', { name: '记一次沟通' }))
+    await user.type(screen.getByLabelText('沟通摘要'), '确定删除关联关系')
+    await user.click(screen.getByRole('button', { name: '保存沟通' }))
+    await user.click(screen.getByRole('button', { name: '删除记录' }))
+    expect(confirm).toHaveBeenCalledWith('删除客户会同时删除 1 条沟通记录。确定继续吗？')
+    expect(screen.queryByText('林女士')).not.toBeInTheDocument()
+    expect(screen.queryByText('客户沟通记录')).not.toBeInTheDocument()
   })
 })
