@@ -48,6 +48,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .search-box:focus-within { border-color: #9eae9f; box-shadow: 0 0 0 3px #6d897414; }
 .search-box input { border: 0; outline: 0; width: 174px; color: #283a31; background: transparent; font-size: 11px; }
 .save-indicator { display: flex; align-items: center; gap: 8px; font-size: 10px; color: #718077; white-space: nowrap; }
+.save-now-button { display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border: 1px solid #d9dfd5; border-radius: 6px; background: #eef1e9; color: #425c4b; font-size: 10px; white-space: nowrap; transition: background .16s, border-color .16s; }
+.save-now-button:hover:not(:disabled) { border-color: #aab9a8; background: #e3eadf; }
+.save-now-button:disabled { cursor: wait; opacity: .58; }
 .save-indicator.error .status-dot { background: #ca624d; box-shadow: 0 0 0 3px #ca624d20; }
 .save-indicator.saving .status-dot { background: #d39853; box-shadow: 0 0 0 3px #d3985320; }
 .page-content { max-width: 1320px; margin: 0 auto; padding: 46px clamp(24px, 4.6vw, 64px) 70px; animation: rise-in .35s ease both; }
@@ -216,7 +219,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   .nav-item { flex: none; padding: 9px 10px; gap: 7px; font-size: 10px; }
   .nav-item svg { width: 15px; height: 15px; }
   .topbar { position: relative; height: auto; min-height: 58px; padding: 10px 17px; gap: 10px; flex-wrap: wrap; }
-  .top-actions { gap: 10px; }
+  .top-actions { gap: 7px; }
+  .save-now-button { padding: 7px; font-size: 9px; }
   .search-box input { width: min(32vw, 160px); }
   .page-content { padding: 29px 17px 45px; }
   .page-heading { align-items: flex-start; }

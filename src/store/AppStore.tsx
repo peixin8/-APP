@@ -32,6 +32,7 @@ interface AppStoreValue {
   importAsPrimary: (file: File) => Promise<void>
   restoreBackup: (file: File) => Promise<void>
   exportBackup: () => void
+  saveNow: () => Promise<void>
 }
 
 const StoreContext = createContext<AppStoreValue | null>(null)
@@ -192,10 +193,45 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     if (current) downloadBackup(current)
   }, [])
 
+  const saveNow = useCallback(async () => {
+    const current = dataRef.current
+    if (!current) return
+    const handle = fileRef.current
+    if (storageMode !== 'file' || !handle) {
+      downloadBackup(current)
+      setSaveState('manual')
+      setMessage('备份已下载，可选择保存位置。')
+      return
+    }
+    setSaveState('saving')
+    setMessage('正在保存本地数据文件…')
+    setIsPending(true)
+    let savedVersion = current.updatedAt
+    const queuedWrite = writeQueue.current.catch(() => undefined).then(() => {
+      const latest = dataRef.current ?? current
+      savedVersion = latest.updatedAt
+      return writeDataFile(handle, latest)
+    })
+    writeQueue.current = queuedWrite
+    try {
+      await queuedWrite
+      if (dataRef.current?.updatedAt === savedVersion) {
+        setSaveState('saved')
+        setLastSavedAt(new Date().toISOString())
+        setMessage('手动保存完成。')
+      }
+    } catch (error) {
+      setSaveState('error')
+      setMessage(`保存失败：${friendlyError(error)} 当前内容仍保留在页面中，请重试或导出备份。`)
+    } finally {
+      setIsPending(false)
+    }
+  }, [storageMode])
+
   const value = useMemo<AppStoreValue>(() => ({
     data, saveState, storageMode, fileName, lastSavedAt, message, isPending, supportsFileAccess,
-    connect, updateData, removeConnection, importAsPrimary, restoreBackup, exportBackup: exportCurrentBackup,
-  }), [data, saveState, storageMode, fileName, lastSavedAt, message, isPending, supportsFileAccess, connect, updateData, removeConnection, importAsPrimary, restoreBackup, exportCurrentBackup])
+    connect, updateData, removeConnection, importAsPrimary, restoreBackup, exportBackup: exportCurrentBackup, saveNow,
+  }), [data, saveState, storageMode, fileName, lastSavedAt, message, isPending, supportsFileAccess, connect, updateData, removeConnection, importAsPrimary, restoreBackup, exportCurrentBackup, saveNow])
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>
 }
