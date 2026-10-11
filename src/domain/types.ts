@@ -98,6 +98,9 @@ export interface FitnessEntry {
   id: string
   date: string
   activity: string
+  bodyPart?: string
+  sets?: number | null
+  reps?: number | null
   duration: string
   completed: boolean
   note: string
