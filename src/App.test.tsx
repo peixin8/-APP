@@ -21,6 +21,16 @@ describe('app shell and first-run experience', () => {
     await screen.findByRole('heading', { name: '早上好，木子' })
     for (const name of ['首页总览','今日计划','自媒体','开发工作','咨询工作','健身计划','饮食计划','游戏娱乐','数据与设置']) expect(screen.getByRole('button', { name: new RegExp(`^${name}$`) })).toBeInTheDocument()
   })
+  it('renders the editorial workspace layout and dashboard card grid', async () => {
+    const user = userEvent.setup()
+    const { container } = render(<App />)
+    await screen.findByRole('heading', { name: /给工作与生活/ })
+    await user.upload(container.querySelector('input[type="file"]') as HTMLInputElement, new File([exportBackup(emptyAppData())], 'backup.json', { type: 'application/json' }))
+    await screen.findByRole('heading', { name: '早上好，木子' })
+    expect(container.querySelector('.app-shell')).toBeInTheDocument()
+    expect(container.querySelector('.sidebar nav .nav-item.active')).toHaveTextContent('首页总览')
+    expect(container.querySelector('.dashboard-grid')).toBeInTheDocument()
+  })
   it('creates a dated recurring todo and tracks its completion', async () => {
     const user = userEvent.setup()
     const { container } = render(<App />)
